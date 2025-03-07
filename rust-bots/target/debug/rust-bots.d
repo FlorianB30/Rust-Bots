@@ -1,0 +1,1 @@
+/home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/target/debug/rust-bots: /home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/src/main.rs /home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/src/map.rs
