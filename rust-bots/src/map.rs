@@ -1,25 +1,32 @@
 use ansi_term::Colour;
 
-struct Map {
-    x:i32,
-    y:i32,
-    entire_map: String
+pub struct Map {
+    pub x:usize,
+    pub y:usize,
+    pub entire_map: Vec<Vec<String>>
 }
 
-pub fn generate_map() -> String {
-    let mut map = Map {
-        x: 100,
-        y: 50,
-        entire_map: "".to_string()
-    };
-
-    for _i in 0..map.y {  
-        for _j in 0..map.x {
-            map.entire_map += ".";
-            print!("{}", Colour::Fixed(130).paint("."));
+impl Map {
+    pub fn generate_map(&mut self) {
+        let mut vec_y:Vec<Vec<String>> = Vec::new(); 
+        for _i in 0..self.y {  
+            let mut vec_x:Vec<String> = Vec::new();
+            for _j in 0..self.x {
+                vec_x.push(".".to_string());
+            }
+            vec_y.push(vec_x);
         }
-        println!("");
+        self.entire_map = vec_y;
     }
 
-    map.entire_map
+    pub fn display_map(&mut self) {
+        println!("");
+        for y in &self.entire_map {  
+            for x in y {
+                print!("{}", x);
+            }
+            println!("");
+        }
+    }
+    
 }
