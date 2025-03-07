@@ -10,6 +10,7 @@ pub struct Station {
 
 impl Station {
     pub fn landing(&mut self) {
+        self.map.generate_map();
         self.map.entire_map[self.pos_y][self.pos_x] = "S".to_string();
         self.map.display_map();
     }

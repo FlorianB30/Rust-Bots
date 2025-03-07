@@ -16,7 +16,5 @@ fn main() {
         map: map
     };
     
-    station.map.generate_map();
-    station.map.display_map();
     station.landing();
 }
