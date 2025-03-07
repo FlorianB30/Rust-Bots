@@ -1,11 +1,21 @@
 use crate::map::Map; 
+use std::sync::mpsc::{Sender, Receiver};
+
+pub struct BotInfo {
+    x: usize,
+    y: usize,
+    map: Map,
+    msg: String
+}
 
 pub struct Bot {
     pub pos_x: usize,
     pub pos_y: usize,
     pub type_bot: BotType,
     pub map_know: Map,
-    pub bag: i32
+    pub bag: i32,
+    pub tx: Sender<BotInfo>,
+    pub rx: Receiver<BotInfo>,
 }
 
 pub enum BotType {
@@ -56,7 +66,7 @@ impl Bot {
     }
 
     fn is_on_map(&mut self, pos_x: usize, pos_y: usize) -> bool {
-        return if self.map_know.x >= pos_x && self.map_know.y >= pos_y {
+        return if self.map_know.width >= pos_x && self.map_know.height >= pos_y {
             true
         } else {
             false
