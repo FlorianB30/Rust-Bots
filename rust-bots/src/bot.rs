@@ -2,7 +2,8 @@ pub struct Bot {
     pub pos_x: i32,
     pub pos_y: i32,
     pub type_bot: BotType,
-    pub map_know: String
+    pub map_know: String,
+    pub bag: i32
 }
 
 pub enum BotType {
@@ -14,6 +15,7 @@ pub enum BotType {
 
 impl Bot {
     fn move_bot(&mut self, pos_x: i32, pos_y:i32) {
+        
         self.pos_x = pos_x;
         self.pos_y = pos_y
     }
@@ -30,9 +32,23 @@ impl Bot {
     pub fn action(&mut self) {
         match self.type_bot {
             BotType::Explorator => {
-                println!("{}", self.map_know);
+                //println!("{}", self.map_know);
+                // découvrir les points près de lui 
+            }
+            BotType::CollectorEnergy {
+                self.bag += 1;
+            }
+            BotType::CollectorMineral {
+                self.bag += 1;
+            }
+            BotType::Scientist {
+                
             }
             _ => println!("Type de bot inconnu."),
         }
+    }
+
+    fn is_on_map() {
+
     }
 }

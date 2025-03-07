@@ -7,7 +7,8 @@ fn main() {
         pos_x: 0,
         pos_y: 0,
         type_bot: bot::BotType::Explorator,
-        map_know: map
+        map_know: map,
+        bag: 0
     };
 
     bot.action();
