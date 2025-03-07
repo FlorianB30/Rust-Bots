@@ -23,7 +23,17 @@ impl Map {
         println!("");
         for y in &self.entire_map {  
             for x in y {
-                print!("{}", x);
+                match x.as_str() {
+                    "S" => {
+                        print!("{}", Colour::Green.paint("S"));
+                    }
+                    "O" => {
+                        print!("{}", Colour::Green.paint("O"));
+                    }
+                    _ => {
+                        print!("{}", Colour::Fixed(130).paint("."));
+                    }
+                }
             }
             println!("");
         }
