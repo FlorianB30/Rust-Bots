@@ -1,13 +1,32 @@
 use ansi_term::Colour;
 
-pub fn generate_map() {
-    let x = 100; // Largeur
-    let y = 50; // hauteur
+pub struct Map {
+    pub x:usize,
+    pub y:usize,
+    pub entire_map: Vec<Vec<String>>
+}
 
-    for _i in 0..y {  
-        for _j in 0..x {
-            print!("{}", Colour::Fixed(130).paint("."));
+impl Map {
+    pub fn generate_map(&mut self) {
+        let mut vec_y:Vec<Vec<String>> = Vec::new(); 
+        for _i in 0..self.y {  
+            let mut vec_x:Vec<String> = Vec::new();
+            for _j in 0..self.x {
+                vec_x.push(".".to_string());
+            }
+            vec_y.push(vec_x);
         }
-        println!("");
+        self.entire_map = vec_y;
     }
+
+    pub fn display_map(&mut self) {
+        println!("");
+        for y in &self.entire_map {  
+            for x in y {
+                print!("{}", x);
+            }
+            println!("");
+        }
+    }
+    
 }
