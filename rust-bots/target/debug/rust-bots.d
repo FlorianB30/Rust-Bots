@@ -1,1 +1,1 @@
-/home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/target/debug/rust-bots: /home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/src/main.rs /home/phenomeno/rust_tp/rust-project/Rust-Bots/rust-bots/src/map.rs
+C:\Users\USER\Downloads\Rust-Bots-main\Rust-Bots-main\rust-bots\rust-bots\target\debug\rust-bots.exe: C:\Users\USER\Downloads\Rust-Bots-main\Rust-Bots-main\rust-bots\rust-bots\src\main.rs C:\Users\USER\Downloads\Rust-Bots-main\Rust-Bots-main\rust-bots\rust-bots\src\map.rs

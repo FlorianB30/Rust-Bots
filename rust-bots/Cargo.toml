@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 ansi_term = "0.12"
+noise = "0.8.2"
+rand = "0.8"
