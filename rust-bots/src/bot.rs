@@ -30,7 +30,7 @@ impl Bot {
     pub fn action(&mut self) {
         match self.type_bot {
             BotType::Explorator => {
-                println(self.map_know);
+                println!("{}", self.map_know);
             }
             _ => println!("Type de bot inconnu."),
         }

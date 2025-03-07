@@ -1,13 +1,25 @@
 use ansi_term::Colour;
 
-pub fn generate_map() {
-    let x = 100; // Largeur
-    let y = 50; // hauteur
+struct Map {
+    x:i32,
+    y:i32,
+    entire_map: String
+}
 
-    for _i in 0..y {  
-        for _j in 0..x {
+pub fn generate_map() -> String {
+    let mut map = Map {
+        x: 100,
+        y: 50,
+        entire_map: "".to_string()
+    };
+
+    for _i in 0..map.y {  
+        for _j in 0..map.x {
+            map.entire_map += ".";
             print!("{}", Colour::Fixed(130).paint("."));
         }
         println!("");
     }
+
+    map.entire_map
 }
