@@ -4,7 +4,7 @@ mod station;
 
 fn main() {
     // map::generate_map();
-    let mut map = map::Map::new(20, 10, 42); 
+    let mut map = map::Map::new(50, 50, 42); 
 
     let mut station = station::Station{    
         bots: Vec::new(),
@@ -14,7 +14,6 @@ fn main() {
     };
 
     station.landing();
-    station.start();
 
     // TESTS
 

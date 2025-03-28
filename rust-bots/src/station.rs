@@ -3,6 +3,9 @@ use crate::bot::BotType;
 use crate::map::Map; 
 use crate::map::Cell;
 
+use std::thread;
+use std::time::Duration;
+
 pub struct Station {
     pub bots: Vec<Bot>,
     pub pos_x: usize,
@@ -13,12 +16,18 @@ pub struct Station {
 impl Station {
     pub fn landing(&mut self) {
         self.map.grid[self.pos_y][self.pos_x] = Cell::Station;
-        self.map.display();
+        self.start();
     }
 
-    pub fn start(&mut self) {
+    fn start(&mut self) {
        self.deploy_first_bot();
-       self.map.display();
+       loop {
+        self.map.display();
+        thread::sleep(Duration::new(5, 0));
+        for bot in &mut self.bots {
+           bot.auto();
+        }
+       }
     }
 
     fn deploy_first_bot(&mut self) {
