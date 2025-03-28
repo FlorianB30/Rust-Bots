@@ -14,6 +14,7 @@ fn main() {
     };
 
     station.landing();
+    station.start();
 
     // TESTS
 

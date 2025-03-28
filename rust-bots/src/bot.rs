@@ -17,8 +17,8 @@ pub struct Bot {
     pub type_bot: BotType,
     pub map_know: Map,
     pub bag: i32,
-    pub tx: mpsc::Sender<BotInfo>,
-    pub rx: Arc<Mutex<mpsc::Receiver<BotInfo>>>,
+    // pub tx: mpsc::Sender<BotInfo>,
+    // pub rx: Arc<Mutex<mpsc::Receiver<BotInfo>>>,
 }
 
 pub enum BotType {
@@ -30,28 +30,28 @@ pub enum BotType {
 
 impl Bot {
     pub fn control(&mut self, pos_x: usize, pos_y:usize) {
-        self.communication();
+        // self.communication();
         if self.is_on_map(pos_x, pos_y) {
             self.move_bot(pos_x, pos_y);
         }
     }
 
-    fn communication(&self) {
-        let infos = BotInfo {
-            x: self.pos_x,
-            y: self.pos_y,
-            // map: self.map_know,
-            msg: "Test".to_string(),
-            ping: true
-        };
+    // fn communication(&self) {
+    //     let infos = BotInfo {
+    //         x: self.pos_x,
+    //         y: self.pos_y,
+    //         // map: self.map_know,
+    //         msg: "Test".to_string(),
+    //         ping: true
+    //     };
         
-        let tx_clone = self.tx.clone();
-        let bot_thread = thread::spawn(move || {
-            tx_clone.send(infos).unwrap(); 
-        });
+    //     let tx_clone = self.tx.clone();
+    //     let bot_thread = thread::spawn(move || {
+    //         tx_clone.send(infos).unwrap(); 
+    //     });
 
-        bot_thread.join().unwrap();
-    }
+    //     bot_thread.join().unwrap();
+    // }
 
     fn move_bot(&mut self, pos_x: usize, pos_y:usize) {
         self.pos_x = pos_x;
