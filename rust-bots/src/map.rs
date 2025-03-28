@@ -9,6 +9,8 @@ pub enum Cell {
     Energy,
     Mineral,
     ScienceSpot,
+    Station,
+    Bot
 }
 pub struct Map {
     pub width: usize,
@@ -129,12 +131,15 @@ impl Map {
                     Cell::Energy => Colour::Fixed(46).paint("E"),  // Vert pour l'énergie
                     Cell::Mineral => Colour::Fixed(208).paint("M"),  // Jaune pour le minerai
                     Cell::ScienceSpot => Colour::Fixed(82).paint("S"),  // Bleu pour les spots scientifiques
+                    Cell::Station => Colour::Fixed(82).paint("$"),  // Station
+                    Cell::Bot => Colour::Fixed(82).paint("¤"),  // robots
                 };
                 print!("{}", symbol);
             }
             println!();
         }
     }
+    
     pub fn collect_resource(&mut self, x: usize, y: usize) -> Option<Cell> {
         match self.grid[y][x] {
             Cell::Energy => {

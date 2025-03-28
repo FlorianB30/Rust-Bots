@@ -5,17 +5,15 @@ mod station;
 fn main() {
     // map::generate_map();
     let mut map = map::Map::new(20, 10, 42); 
-    
-    map.display();
 
-    let station = station::::new(    
-        bots: Vec<Bot>::new(),
+    let mut station = station::Station{    
+        bots: Vec::new(),
         pos_x: 0,
         pos_y: 0,
-        pub map: map
-    )
+        map: map
+    };
 
-
+    station.landing();
 
     // TESTS
 
