@@ -27,6 +27,7 @@ impl Station {
         for bot in &mut self.bots {
            bot.auto();
         }
+        self.refresh_bot_location();
        }
     }
 
@@ -40,6 +41,20 @@ impl Station {
                 bag: 0 
         });
         self.map.grid[1][1] = Cell::Bot;
+    }
+
+    fn refresh_bot_location(&mut self) {
+        for row in &self.map.grid {
+            for mut cell in row {
+                if cell == &Cell::Bot {
+                    cell = &Cell::Empty;
+                }
+            }
+        }
+
+        for bot in &mut self.bots {
+            self.map.grid[bot.pos_y][bot.pos_x] = Cell::Bot;
+        }
     }
 
     fn get_bot_map(&self) -> Map {

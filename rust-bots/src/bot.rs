@@ -61,7 +61,7 @@ impl Bot {
 
     fn move_bot(&mut self, pos_x: usize, pos_y:usize) {
         self.pos_x = pos_x;
-        self.pos_y = pos_y
+        self.pos_y = pos_y;
     }
 
     fn isobstacle(&mut self, pos_x: usize, pos_y: usize) -> bool {
@@ -88,8 +88,8 @@ impl Bot {
 
                 for i in 0 .. 7 {
                     if self.is_on_map(X, Y - 1) {
-                        if !self.isobstacle(X, Y) {
-                            self.move_bot(X, Y);
+                        if !self.isobstacle(X, Y - 1) {
+                            self.move_bot(X, Y - 1);
                             return;
                         }
                     }
