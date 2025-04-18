@@ -44,10 +44,11 @@ impl Station {
     }
 
     fn refresh_bot_location(&mut self) {
-        for row in &self.map.grid {
-            for mut cell in row {
-                if cell == &Cell::Bot {
-                    cell = &Cell::Empty;
+        for row in &mut self.map.grid {
+            for cell in row.iter_mut() {
+                match cell {
+                    Cell::Bot => *cell = Cell::Empty,
+                    _ => {}
                 }
             }
         }
