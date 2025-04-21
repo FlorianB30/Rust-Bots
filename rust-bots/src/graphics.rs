@@ -20,7 +20,7 @@ fn setup_camera(mut commands: Commands) {
 
 fn spawn_map(mut commands: Commands, map_size: Res<MapSize>) {
     let map_size = *map_size;
-    let mut map = Map::new(map_size.width, map_size.height, 42); // <--- à remettre
+    let mut map = Map::new(map_size.width, map_size.height, 42); 
     map.generate();
 
     for (y, row) in map.grid.iter().enumerate() {

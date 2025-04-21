@@ -1,11 +1,13 @@
-use crate::bot::{Bot, BotType};
+use crate::bot::{LogicBot, BotType};
 use crate::map::{Map, Tile};
 use crate::resources::ResourceType;
+use bevy::ecs::system::Resource;
 
+#[derive(Resource)]
 pub struct Station {
     pub x: usize,
     pub y: usize,
-    pub bots: Vec<Bot>,
+    pub bots: Vec<LogicBot>,
     pub map: Map,
     pub memory: Vec<(usize, usize, ResourceType)>,
     pub inventory: usize,
@@ -25,9 +27,9 @@ impl Station {
     }
 
     pub fn deploy_initial_bots(&mut self) {
-        self.bots.push(Bot::new(self.x + 1, self.y + 1, BotType::Explorator, self.x, self.y));
-        self.bots.push(Bot::new(self.x + 2, self.y, BotType::Collector(ResourceType::Energy), self.x, self.y));
-        self.bots.push(Bot::new(self.x, self.y + 2, BotType::Scientist, self.x, self.y));
+        self.bots.push(LogicBot::new(self.x + 1, self.y + 1, BotType::Explorator, self.x, self.y));
+        self.bots.push(LogicBot::new(self.x + 2, self.y, BotType::Collector(ResourceType::Energy), self.x, self.y));
+        self.bots.push(LogicBot::new(self.x, self.y + 2, BotType::Scientist, self.x, self.y));
         for bot in &self.bots {
             self.map.grid[bot.y][bot.x] = Tile::Bot;
         }
@@ -37,7 +39,6 @@ impl Station {
         for bot in self.bots.iter_mut() {
             bot.act(&mut self.map, &mut self.memory, &mut self.inventory);
         }
-        //self.map.display();
         println!("[Station] Total Inventory: {}", self.inventory);
         println!("[Station] Memory Size: {} points known.", self.memory.len());
     }
