@@ -2,10 +2,20 @@ use bevy::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
+use crate::memory::Memory;
 use crate::map::{Map, Tile, MapSize};
 use crate::resources::ResourceType;
 
+pub const TILE_SIZE: f32 = 10.0;
+
 pub struct BotPlugin;
+
+impl Plugin for BotPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn_bots)
+            .add_systems(Update, bot_movement_system);
+    }
+}
 
 #[derive(Component)]
 pub struct Bot;
@@ -13,12 +23,79 @@ pub struct Bot;
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
 
-pub const TILE_SIZE: f32 = 10.0;
+#[derive(Debug, Clone)]
+pub enum BotType {
+    Explorator,
+    Collector(ResourceType),
+    Scientist,
+}
 
-impl Plugin for BotPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_bots)
-           .add_systems(Update, bot_movement_system);
+#[derive(Debug, Clone)]
+pub struct LogicBot {
+    pub x: usize,
+    pub y: usize,
+    pub bot_type: BotType,
+    pub home_x: usize,
+    pub home_y: usize,
+}
+
+impl LogicBot {
+    pub fn new(x: usize, y: usize, bot_type: BotType, home_x: usize, home_y: usize) -> Self {
+        Self {
+            x,
+            y,
+            bot_type,
+            home_x,
+            home_y,
+        }
+    }
+
+    pub fn act(
+        &mut self,
+        map: &mut Map,
+        memory: &mut Memory,
+        inventory: &mut usize,
+    ) {
+        let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+        let mut rng = thread_rng();
+        let (dx, dy) = directions.choose(&mut rng).unwrap();
+
+        let new_x = self.x as isize + dx;
+        let new_y = self.y as isize + dy;
+
+        if new_x >= 0
+            && new_x < map.width as isize
+            && new_y >= 0
+            && new_y < map.height as isize
+        {
+            let new_x = new_x as usize;
+            let new_y = new_y as usize;
+
+            if map.is_valid(new_x, new_y) {
+                map.grid[self.y][self.x] = Tile::Empty;
+                self.x = new_x;
+                self.y = new_y;
+
+                match map.grid[self.y][self.x] {
+                    Tile::Energy => memory.add(self.x, self.y, ResourceType::Energy),
+                    Tile::Mineral => memory.add(self.x, self.y, ResourceType::Mineral),
+                    Tile::Science => memory.add(self.x, self.y, ResourceType::Science),
+
+                    _ => {}
+                }
+
+                map.grid[self.y][self.x] = Tile::Bot;
+            }
+        }
+
+        if self.x == self.home_x && self.y == self.home_y {
+            *inventory += memory.len();
+            println!(
+                "[SYNC] Bot synchronisé avec la station : {} éléments transférés.",
+                memory.len()
+            );
+            memory.clear();
+        }
     }
 }
 
