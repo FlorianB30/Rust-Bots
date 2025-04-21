@@ -1,40 +1,44 @@
-use crate::bot::Bot; 
-use crate::bot::BotType; 
-use crate::map::Map; 
+use crate::bot::{Bot, BotType};
+use crate::map::{Map, Tile};
+use crate::resources::ResourceType;
 
 pub struct Station {
+    pub x: usize,
+    pub y: usize,
     pub bots: Vec<Bot>,
-    pub pos_x: usize,
-    pub pos_y: usize,
-    pub map: Map
+    pub map: Map,
+    pub memory: Vec<(usize, usize, ResourceType)>,
+    pub inventory: usize,
 }
 
 impl Station {
-    pub fn landing(&mut self) {
-        self.map.generate_map();
-        self.map.entire_map[self.pos_y][self.pos_x] = "S".to_string();
-        self.map.display_map();
+    pub fn new(x: usize, y: usize, mut map: Map) -> Self {
+        map.grid[y][x] = Tile::Station;
+        Self {
+            x,
+            y,
+            bots: Vec::new(),
+            map,
+            memory: Vec::new(),
+            inventory: 0,
+        }
     }
 
-    pub fn start(&mut self) {
-        self.deploy_first_bot();
-        self.map.display_map();
+    pub fn deploy_initial_bots(&mut self) {
+        self.bots.push(Bot::new(self.x + 1, self.y + 1, BotType::Explorator, self.x, self.y));
+        self.bots.push(Bot::new(self.x + 2, self.y, BotType::Collector(ResourceType::Energy), self.x, self.y));
+        self.bots.push(Bot::new(self.x, self.y + 2, BotType::Scientist, self.x, self.y));
+        for bot in &self.bots {
+            self.map.grid[bot.y][bot.x] = Tile::Bot;
+        }
     }
 
-    fn deploy_first_bot(&mut self) {
-        self.bots.push(Bot { pos_x: 1, pos_y: 1, type_bot: BotType::Explorator, 
-            map_know: self.get_bot_map()
-            , bag: 0 });
-        self.map.entire_map[1][1] = "O".to_string();
-    }
-
-    fn get_bot_map(&self) -> Map {
-        let mut map_current = Map {
-            x: self.map.x,
-            y: self.map.y,
-            entire_map: self.map.entire_map.clone()
-        };
-
-        map_current
+    pub fn run(&mut self) {
+        for bot in self.bots.iter_mut() {
+            bot.act(&mut self.map, &mut self.memory, &mut self.inventory);
+        }
+        //self.map.display();
+        println!("[Station] Total Inventory: {}", self.inventory);
+        println!("[Station] Memory Size: {} points known.", self.memory.len());
     }
 }
