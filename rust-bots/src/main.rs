@@ -1,52 +1,52 @@
+use bevy::prelude::*;
+use bevy::window::WindowPlugin;
+use bevy::DefaultPlugins;
+
+mod graphics;
 mod map;
 mod bot;
+mod resources;
+mod ui;
 mod station;
+mod memory;
+mod performance; 
 
-fn main() {
-    // map::generate_map();
-    let mut map = map::Map::new(50, 50, 42); 
+use performance::PerformancePlugin;
+use memory::Memory;
+use ui::UiPlugin;
+use graphics::GraphicsPlugin;
+use bot::BotPlugin;
+use bevy::prelude::Resource;
+use station::Station;
 
-    let mut station = station::Station{    
-        bots: Vec::new(),
-        pos_x: 0,
-        pos_y: 0,
-        map: map
-    };
+use crate::map::{Map, MapSize};
 
-    station.landing();
 
-    // TESTS
-
-    // let positions = [(5, 5), (1, 1), (10, 3), (15, 7)];
-    // for &(x, y) in &positions {
-    //     println!("\nEssai de collecte à la position ({}, {}):", x, y);
-    //     if let Some(cell) = map.get_cell(x, y) {
-    //         println!("Cellule à la position ({}, {}): {:?}", x, y, cell);
-    //     } else {
-    //         println!("Cellule invalide à la position ({}, {})", x, y);
-    //     }
-
-    //     if let Some(resource) = map.collect_resource(x, y) {
-    //         println!("Ressource collectée : {:?}", resource);
-    //     } else {
-    //         println!("Aucune ressource à collecter à cette position.");
-    //     }
-    // }
-
-    // let x = 5;
-    // let y = 5;
-
-    // if let Some(cell) = map.get_cell(x, y) {
-    //     println!("Cellule à la position ({}, {}): {:?}", x, y, cell);
-    // } else {
-    //     println!("Cellule invalide à la position ({}, {})", x, y);
-    // }
-
-    // //println!("Cellule à la position ({}, {}) : {:?}", x, y, map.grid[y][x]);
-    // if let Some(resource) = map.collect_resource(x, y) {
-    //     println!("Ressource collectée : {:?}", resource);
-    // } else {
-    //     println!("Aucune ressource à collecter à cette position.");
-    // }
-
+fn main() {   
+    App::new()
+    .insert_resource(MapSize { width: 100, height: 60 })
+    .insert_resource(Map::new(100, 60, 42))
+    .insert_resource(Memory::default()) 
+    .insert_resource({
+        let mut map = Map::new(100, 60, 42);
+        let mut station = Station::new(5, 5, map.clone());
+        station.deploy_initial_bots();
+        station
+    })    .add_plugins(DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                title: "EREEA - Map Viewer".to_string(),
+                resolution: (1000.0, 800.0).into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }))
+        .add_plugins(GraphicsPlugin)
+        .add_plugins(BotPlugin)
+        .add_plugins(UiPlugin)
+        .add_plugins(PerformancePlugin)
+        .add_systems(Update, run_station) 
+        .run();
+}
+fn run_station(mut station: ResMut<Station>) {
+    station.run();
 }

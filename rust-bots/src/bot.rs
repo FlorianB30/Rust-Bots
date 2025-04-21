@@ -1,114 +1,165 @@
-use crate::map::Map; 
-use crate::map::Cell;
-use std::sync::mpsc;
-use std::thread;
-use std::sync::{Arc, Mutex};
+use bevy::prelude::*;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
-pub struct BotInfo {
-    pub x: usize,
-    pub y: usize,
-  //  pub map: Map,
-    pub msg: String,
-    pub ping: bool
+use crate::memory::Memory;
+use crate::map::{Map, Tile, MapSize};
+use crate::resources::ResourceType;
+
+pub const TILE_SIZE: f32 = 10.0;
+
+pub struct BotPlugin;
+
+impl Plugin for BotPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn_bots)
+            .add_systems(Update, bot_movement_system);
+    }
 }
 
-pub struct Bot {
-    pub pos_x: usize,
-    pub pos_y: usize,
-    pub type_bot: BotType,
-    pub map_know: Map,
-    pub bag: i32,
-    // pub tx: mpsc::Sender<BotInfo>,
-    // pub rx: Arc<Mutex<mpsc::Receiver<BotInfo>>>,
-}
+#[derive(Component)]
+pub struct Bot;
 
+#[derive(Component)]
+pub struct Velocity(pub Vec2);
+
+#[derive(Debug, Clone)]
 pub enum BotType {
     Explorator,
-    CollectorEnergy,
-    CollectorMineral,
-    Scientist
+    Collector(ResourceType),
+    Scientist,
 }
 
-impl Bot {
-    pub fn auto(&mut self) {
-        // 8 cases autour du robot  
-        self.action();
-    }
-    
-    pub fn control(&mut self, pos_x: usize, pos_y:usize) {
-        // self.communication();
-        if self.is_on_map(pos_x, pos_y) {
-            self.move_bot(pos_x, pos_y);
+#[derive(Debug, Clone)]
+pub struct LogicBot {
+    pub x: usize,
+    pub y: usize,
+    pub bot_type: BotType,
+    pub home_x: usize,
+    pub home_y: usize,
+}
+
+impl LogicBot {
+    pub fn new(x: usize, y: usize, bot_type: BotType, home_x: usize, home_y: usize) -> Self {
+        Self {
+            x,
+            y,
+            bot_type,
+            home_x,
+            home_y,
         }
     }
 
-    // fn communication(&self) {
-    //     let infos = BotInfo {
-    //         x: self.pos_x,
-    //         y: self.pos_y,
-    //         // map: self.map_know,
-    //         msg: "Test".to_string(),
-    //         ping: true
-    //     };
-        
-    //     let tx_clone = self.tx.clone();
-    //     let bot_thread = thread::spawn(move || {
-    //         tx_clone.send(infos).unwrap(); 
-    //     });
+    pub fn act(
+        &mut self,
+        map: &mut Map,
+        memory: &mut Memory,
+        inventory: &mut usize,
+    ) {
+        let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+        let mut rng = thread_rng();
+        let (dx, dy) = directions.choose(&mut rng).unwrap();
 
-    //     bot_thread.join().unwrap();
-    // }
+        let new_x = self.x as isize + dx;
+        let new_y = self.y as isize + dy;
 
-    fn move_bot(&mut self, pos_x: usize, pos_y:usize) {
-        self.pos_x = pos_x;
-        self.pos_y = pos_y;
-    }
+        if new_x >= 0
+            && new_x < map.width as isize
+            && new_y >= 0
+            && new_y < map.height as isize
+        {
+            let new_x = new_x as usize;
+            let new_y = new_y as usize;
 
-    fn isobstacle(&mut self, pos_x: usize, pos_y: usize) -> bool {
-        // verifier si il y a des obstacles près du bot
-        match self.map_know.get_cell(pos_x, pos_y) {
-            Some(Cell::Bot) => true,
-            Some(Cell::Station) => true,
-            Some(Cell::Obstacle) => true,
-            _ => false,
-        }
-    }
+            if map.is_valid(new_x, new_y) {
+                map.grid[self.y][self.x] = Tile::Empty;
+                self.x = new_x;
+                self.y = new_y;
 
-    fn go_home(&mut self) {
-        // retour à la station
-    }
+                match map.grid[self.y][self.x] {
+                    Tile::Energy => memory.add(self.x, self.y, ResourceType::Energy),
+                    Tile::Mineral => memory.add(self.x, self.y, ResourceType::Mineral),
+                    Tile::Science => memory.add(self.x, self.y, ResourceType::Science),
 
-    fn action(&mut self) {
-        match self.type_bot {
-            BotType::Explorator => {
-                println!("Explore...");
-                // découvrir les points près de lui 
-                let mut X: usize = self.pos_x;
-                let mut Y: usize = self.pos_y;
-
-                for i in 0 .. 7 {
-                    if self.is_on_map(X, Y - 1) {
-                        if !self.isobstacle(X, Y - 1) {
-                            self.move_bot(X, Y - 1);
-                            return;
-                        }
-                    }
+                    _ => {}
                 }
+
+                map.grid[self.y][self.x] = Tile::Bot;
             }
-            BotType::CollectorEnergy => {
-                self.bag += 1;
-            }
-            BotType::CollectorMineral => {
-                self.bag += 1;
-            }
-            BotType::Scientist => {
-                
-            }
-            _ => println!("Type de bot inconnu."),
+        }
+
+        if self.x == self.home_x && self.y == self.home_y {
+            *inventory += memory.len();
+            println!(
+                "[SYNC] Bot synchronisé avec la station : {} éléments transférés.",
+                memory.len()
+            );
+            memory.clear();
         }
     }
+}
 
-    fn is_on_map(&mut self, pos_x: usize, pos_y: usize) -> bool {
-        return self.map_know.width >= pos_x && self.map_know.height >= pos_y 
+fn spawn_bots(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let bot_texture: Handle<Image> = asset_server.load("bot.png");
+
+    let positions = vec![
+        Vec3::new(-400.0, 200.0, 1.0),
+        Vec3::new(-300.0, 200.0, 1.0),
+        Vec3::new(-200.0, 200.0, 1.0),
+        Vec3::new(-100.0, 200.0, 1.0),
+        Vec3::new(0.0, 200.0, 1.0),
+    ];
+
+    for pos in positions {
+        let direction = random_direction();
+        commands.spawn((
+            SpriteBundle {
+                texture: bot_texture.clone(),
+                transform: Transform::from_translation(pos).with_scale(Vec3::splat(0.05)),
+                ..default()
+            },
+            Bot,
+            Velocity(direction * 40.0),
+        ));
     }
+}
+
+fn bot_movement_system(
+    time: Res<Time>,
+    map: Res<Map>,
+    map_size: Res<MapSize>,
+    mut query: Query<(&mut Velocity, &mut Transform), With<Bot>>,
+) {
+    for (mut velocity, mut transform) in query.iter_mut() {
+        let new_pos = transform.translation + velocity.0.extend(0.0) * time.delta_seconds();
+
+        let grid_x = ((new_pos.x + 500.0) / TILE_SIZE).floor() as isize;
+        let grid_y = (-(new_pos.y - 300.0) / TILE_SIZE).floor() as isize;
+
+        if grid_x >= 0
+            && grid_x < map_size.width as isize
+            && grid_y >= 0
+            && grid_y < map_size.height as isize
+        {
+            let gx = grid_x as usize;
+            let gy = grid_y as usize;
+
+            if map.is_valid(gx, gy) {
+                transform.translation = new_pos;
+                continue;
+            }
+        }
+
+        velocity.0 = random_direction() * 40.0;
+    }
+}
+
+fn random_direction() -> Vec2 {
+    let directions = vec![
+        Vec2::new(1.0, 0.0),
+        Vec2::new(-1.0, 0.0),
+        Vec2::new(0.0, 1.0),
+        Vec2::new(0.0, -1.0),
+    ];
+    *directions.choose(&mut thread_rng()).unwrap()
 }

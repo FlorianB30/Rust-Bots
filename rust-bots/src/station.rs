@@ -1,70 +1,63 @@
-use crate::bot::Bot; 
-use crate::bot::BotType; 
-use crate::map::Map; 
-use crate::map::Cell;
+use std::sync::{Arc, Mutex};
+use bevy::prelude::Resource;
+use rayon::prelude::*;
 
-use std::thread;
-use std::time::Duration;
+use crate::bot::{LogicBot, BotType};
+use crate::map::{Map, Tile};
+use crate::memory::Memory;
+use crate::resources::ResourceType;
 
+#[derive(Resource)]
 pub struct Station {
-    pub bots: Vec<Bot>,
-    pub pos_x: usize,
-    pub pos_y: usize,
-    pub map: Map
+    pub x: usize,
+    pub y: usize,
+    pub bots: Arc<Mutex<Vec<LogicBot>>>,
+    pub map: Arc<Mutex<Map>>,
+    pub memory: Arc<Mutex<Memory>>,
+    pub inventory: Arc<Mutex<usize>>,
 }
 
 impl Station {
-    pub fn landing(&mut self) {
-        self.map.grid[self.pos_y][self.pos_x] = Cell::Station;
-        self.start();
-    }
+    pub fn new(x: usize, y: usize, map: Map) -> Self {
+        let mut map_copy = map.clone();
+        map_copy.grid[y][x] = Tile::Station;
 
-    fn start(&mut self) {
-       self.deploy_first_bot();
-       loop {
-        self.map.display();
-        thread::sleep(Duration::new(5, 0));
-        for bot in &mut self.bots {
-           bot.auto();
+        Self {
+            x,
+            y,
+            bots: Arc::new(Mutex::new(Vec::new())),
+            map: Arc::new(Mutex::new(map_copy)),
+            memory: Arc::new(Mutex::new(Memory::default())),
+            inventory: Arc::new(Mutex::new(0)),
         }
-        self.refresh_bot_location();
-       }
     }
 
-    fn deploy_first_bot(&mut self) {
-        self.bots.push(
-            Bot {
-                pos_x: 1, 
-                pos_y: 1, 
-                type_bot: BotType::Explorator, 
-                map_know: self.get_bot_map(),
-                bag: 0 
+    pub fn deploy_initial_bots(&mut self) {
+        let mut bots = self.bots.lock().unwrap();
+        bots.push(LogicBot::new(self.x + 1, self.y + 1, BotType::Explorator, self.x, self.y));
+        bots.push(LogicBot::new(self.x + 2, self.y, BotType::Collector(ResourceType::Energy), self.x, self.y));
+        bots.push(LogicBot::new(self.x, self.y + 2, BotType::Scientist, self.x, self.y));
+    
+        let mut map = self.map.lock().unwrap();
+        for bot in bots.iter() {
+            map.grid[bot.y][bot.x] = Tile::Bot;
+        }
+    }
+    
+
+    pub fn run(&mut self) {
+        let bots = self.bots.clone();
+        bots.lock().unwrap().par_iter_mut().for_each(|bot| {
+            let mut map = self.map.lock().unwrap();
+            let mut memory = self.memory.lock().unwrap();
+            let mut inventory = self.inventory.lock().unwrap();
+            bot.act(&mut map, &mut memory, &mut inventory);
         });
-        self.map.grid[1][1] = Cell::Bot;
+    
+        let inventory = self.inventory.lock().unwrap();
+        let memory = self.memory.lock().unwrap();
+        println!("[Station] Total Inventory: {}", *inventory);
+        println!("[Station] Memory Size: {} points known.", memory.len());
     }
-
-    fn refresh_bot_location(&mut self) {
-        for row in &mut self.map.grid {
-            for cell in row.iter_mut() {
-                match cell {
-                    Cell::Bot => *cell = Cell::Empty,
-                    _ => {}
-                }
-            }
-        }
-
-        for bot in &mut self.bots {
-            self.map.grid[bot.pos_y][bot.pos_x] = Cell::Bot;
-        }
-    }
-
-    fn get_bot_map(&self) -> Map {
-        let mut map_current = Map {
-            width: self.map.width,
-            height: self.map.height,
-            grid: self.map.grid.clone()
-        };
-
-        map_current
-    }
+    
 }
