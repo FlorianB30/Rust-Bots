@@ -9,24 +9,6 @@ pub struct Map {
     pub seed: u32,
     pub grid: Vec<Vec<Tile>>,
 }
-pub struct Map {
-    pub width: usize,
-    pub height: usize,
-    pub grid: Vec<Vec<Cell>>,  
-}
-// pub fn generate_map() {
-//     let x = 100; // Largeur
-//     let y = 50; // hauteur
-
-//     for _i in 0..y {  
-//         for _j in 0..x {
-//             print!("{}", Colour::Fixed(130).paint("."));
-//         }
-//         println!("");
-//     }
-// }
-
-
 
 #[derive(Resource, Clone, Copy)]
 pub struct MapSize {
