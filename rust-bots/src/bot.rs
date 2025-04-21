@@ -2,12 +2,12 @@ use bevy::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
+use crate::memory::Memory;
 use crate::map::{Map, Tile, MapSize};
 use crate::resources::ResourceType;
 
 pub const TILE_SIZE: f32 = 10.0;
 
-/// Plugin pour gérer les bots dans Bevy
 pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
@@ -23,16 +23,14 @@ pub struct Bot;
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
 
-/// Type de bot
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BotType {
     Explorator,
     Collector(ResourceType),
     Scientist,
 }
 
-/// Bot logique (utilisé dans la simulation non graphique)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicBot {
     pub x: usize,
     pub y: usize,
@@ -55,7 +53,7 @@ impl LogicBot {
     pub fn act(
         &mut self,
         map: &mut Map,
-        memory: &mut Vec<(usize, usize, ResourceType)>,
+        memory: &mut Memory,
         inventory: &mut usize,
     ) {
         let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
@@ -79,9 +77,10 @@ impl LogicBot {
                 self.y = new_y;
 
                 match map.grid[self.y][self.x] {
-                    Tile::Energy => memory.push((self.x, self.y, ResourceType::Energy)),
-                    Tile::Mineral => memory.push((self.x, self.y, ResourceType::Mineral)),
-                    Tile::Science => memory.push((self.x, self.y, ResourceType::Science)),
+                    Tile::Energy => memory.add(self.x, self.y, ResourceType::Energy),
+                    Tile::Mineral => memory.add(self.x, self.y, ResourceType::Mineral),
+                    Tile::Science => memory.add(self.x, self.y, ResourceType::Science),
+
                     _ => {}
                 }
 
@@ -100,7 +99,6 @@ impl LogicBot {
     }
 }
 
-/// Spawning visuel des bots à l’écran avec le sprite `bot.png`
 fn spawn_bots(mut commands: Commands, asset_server: Res<AssetServer>) {
     let bot_texture: Handle<Image> = asset_server.load("bot.png");
 
@@ -126,7 +124,6 @@ fn spawn_bots(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-/// Système Bevy pour faire bouger les entités Bot visuellement
 fn bot_movement_system(
     time: Res<Time>,
     map: Res<Map>,

@@ -3,7 +3,6 @@ use bevy::prelude::{Style, Val, PositionType, JustifyContent, AlignItems, UiRect
 
 use crate::station::Station;
 
-
 #[derive(Component)]
 struct UiRoot;
 
@@ -21,7 +20,6 @@ impl Plugin for UiPlugin {
            .add_systems(Update, update_ui);
     }
 }
-
 
 fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
@@ -78,10 +76,12 @@ fn update_ui(
     mut query_memory: Query<&mut Text, (With<MemoryText>, Without<InventoryText>)>,
 ) {
     if let Ok(mut text) = query_inventory.get_single_mut() {
-        text.sections[0].value = format!("Inventory: {}", station.inventory);
+        let inventory = station.inventory.lock().unwrap();
+        text.sections[0].value = format!("Inventory: {}", *inventory);
     }
 
     if let Ok(mut text) = query_memory.get_single_mut() {
-        text.sections[0].value = format!("Memory: {} resources", station.memory.len());
+        let memory = station.memory.lock().unwrap();
+        text.sections[0].value = format!("Memory: {} resources", memory.len());
     }
 }

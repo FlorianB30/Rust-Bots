@@ -9,7 +9,9 @@ mod resources;
 mod ui;
 mod station;
 mod memory;
+mod performance; 
 
+use performance::PerformancePlugin;
 use memory::Memory;
 use ui::UiPlugin;
 use graphics::GraphicsPlugin;
@@ -41,6 +43,7 @@ fn main() {
         .add_plugins(GraphicsPlugin)
         .add_plugins(BotPlugin)
         .add_plugins(UiPlugin)
+        .add_plugins(PerformancePlugin)
         .add_systems(Update, run_station) 
         .run();
 }
